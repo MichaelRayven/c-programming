@@ -65,11 +65,17 @@ float** getMaxSquare(int a, int b, float** matrix) {
     float max = findMatrixMax(a, b, matrix);
 
     int maxI = 0, maxJ = 0;
-    for (; maxI < a; maxI++) {
-        for (; maxJ < b; maxJ++) {
-            if (max == matrix[maxI][maxJ]) break;
+    for (int i = 0; i < a; i++) {
+        for (int j = 0; j < b; j++) {
+            if (max == matrix[i][j]) {
+                maxI = i;
+                maxJ = j;
+                break;
+            }
         }
     }
+
+    printf("%.2f: %d, %d ", max, maxI, maxJ);
 
     int squareSize = 0;
     if (maxI > maxJ) {
@@ -82,7 +88,8 @@ float** getMaxSquare(int a, int b, float** matrix) {
     for (int i = 0; i < squareSize; i++) {
         for (int j = 0; j < squareSize; j++) {
             // Check for exceptions
-            square[i][j] = matrix[maxI - 1 - squareSize + i][maxJ - 1 - squareSize + j];
+            // printf("%d, %d ", i, j);
+            square[i][j] = matrix[maxI - (squareSize - 1) + i][maxJ - (squareSize - 1) + j];
         }
     }
 
@@ -111,6 +118,11 @@ int main() {
     int size = 10;
     srand(time(NULL));
     float** matrix = randomSquareMatrix(size);
+
+    // float max = findMatrixMax(size, size, matrix);
+    // printMatrix(size, size, matrix);
+    // printf("%.2f", max);
+
     float** square = getMaxSquare(size, size, matrix);
     float** squareTransposed = transpose(size, square);
     
