@@ -17,9 +17,11 @@ int main()
         {
             if (current > max)
             {
+                // Save max
                 max = current;
                 maxInd = currentInd;
             }
+            // Reset
             current = 0;
             currentInd = i;
         }
