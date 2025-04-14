@@ -94,11 +94,18 @@ int main() {
     printf("\n");
 
     char line[20];
-    do {
-        printf("\nEnter a surname to find: ");
-        scanf("%s", line);
+    printf("\nEnter a surname to find (or end): ");
+    scanf("%s", line);
 
+    while (strcmp("end", line) != 0) {
         tree *t1 = search(t, line, surnamecmp);
-        studentprint(t1->key);
-    } while (strcmp("end", line) != 0);
+        if (t1 == NULL) {
+            printf("Student not found");
+        } else {
+            studentprint(t1->key);
+        }
+
+        printf("\nEnter a surname to find (or end): ");
+        scanf("%s", line);
+    }
 }

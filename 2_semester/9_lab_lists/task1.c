@@ -44,7 +44,7 @@ void sortLinkedList(LinkedList *list, int (*compareFunc)(void *, void *)) {
         while(ptr->next != NULL) {
             next = ptr->next;
             
-            if (compareFunc(ptr->data, next->data)) {
+            if (compareFunc(next->data, ptr->data)) {
                 flag = 1;
 
                 if (ptr == list->head) {
@@ -68,10 +68,10 @@ void sortLinkedList(LinkedList *list, int (*compareFunc)(void *, void *)) {
     } while(flag);
 }
 
-int compareStudentGrades(void *a, void *b) {
+int lessSurname(void *a, void *b) {
     StudentGrades *g1 = (StudentGrades *) a;
     StudentGrades *g2 = (StudentGrades *) b;
-    return strcmp(g1->surname, g2->surname) > 0;
+    return strcmp(g1->surname, g2->surname) < 0;
 }
 
 int main() {
@@ -101,7 +101,7 @@ int main() {
     }
 
     // Sort linked list
-    sortLinkedList(&list, compareStudentGrades);
+    sortLinkedList(&list, lessSurname);
     
     // Print linked list
     printList(&list, printStudentGrade);

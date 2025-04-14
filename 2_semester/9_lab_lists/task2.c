@@ -51,48 +51,6 @@ void deleteNode(LinkedList *list, Node *n) {
     free(n);
 }
 
-void sortLinkedList(LinkedList *list, int (*compareFunc)(void *, void *)) {
-    Node *ptr, *next, *prev;
-    int flag = 0;
-
-    do {
-        ptr = list->head;
-        prev = list->head;
-        flag = 0;
-
-        while(ptr->next != NULL) {
-            next = ptr->next;
-            
-            if (compareFunc(ptr->data, next->data)) {
-                flag = 1;
-
-                if (ptr == list->head) {
-                    ptr->next = next->next;
-                    next->next = ptr;
-                    prev = next;
-                    list->head = next;
-                } else {
-                    ptr->next = next->next;
-                    next->next = ptr;
-                    prev->next = next;
-                    prev = next;
-                }
-
-                continue;
-            }
-
-            prev = ptr;
-            ptr = ptr->next;
-        }
-    } while(flag);
-}
-
-int compareStudentGrades(void *a, void *b) {
-    StudentGrades *g1 = (StudentGrades *) a;
-    StudentGrades *g2 = (StudentGrades *) b;
-    return strcmp(g1->surname, g2->surname) > 0;
-}
-
 int main() {
     StudentGrades data[] = {
         {"Jones", {1, 2, 3, 4}},
