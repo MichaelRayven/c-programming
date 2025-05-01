@@ -3,72 +3,111 @@
 
 #include "ui/ui.h"
 
-// Элементы GUI
-uiEntry *entry1, *entry2;
-uiLabel *resultLabel;
+#define SIZE 4
+static int field[SIZE][SIZE];
+static uiButton *buttons[SIZE][SIZE];
+static uiWindow *window;
+
+void swapTile(int r1, int c1, int r2, int c2) {
+    int tempValue = field[r1][c1];
+    char *tempLabel = uiButtonText(buttons[r1][c1]);
+
+    field[r1][c1] = field[r2][c2];
+    field[r2][c2] = tempValue;
+
+    uiButtonSetText(buttons[r1][c1], uiButtonText(buttons[r2][c2]));
+    uiButtonSetText(buttons[r2][c2], tempLabel);
+}
+
+// r2, c2 - координаты свободной клетки
+int isValidMove(int r1, int c1, int r2, int c2) {
+    return r1 == r2 || c1 == c2;    
+}
 
 // Обработчик кнопки
-void onSuper(uiButton *b, void *data)
-{
-    const char *text1 = uiEntryText(entry1);
-    const char *text2 = uiEntryText(entry2);
-    char *endptr;
-    long num1, num2;
+void clickHandler(uiButton *b, void *data) {
+  int number = *((int *) data), col = 0, row = 0, emptyRow = 0, emptyCol = 0;
+  for (int i = 0; i < SIZE; i++) {
+    for (int j = 0; j < SIZE; j++) {
+        if (field[i][j] == number) {
+            col = i;
+            row = j;
+        }
+        if (field[i][j] == 0) {
+            emptyCol = i;
+            emptyRow = j;
+        }
+    }
+  }
 
-    // Парсим первое число
-    num1 = strtol(text1, &endptr, 10);
+  if (isValidMove(col, row, emptyCol, emptyRow)) {
+    int direction[2] = {
+      row - emptyRow < 0 ? 1 : -1,
+      col - emptyCol < 0 ? 1 : -1 
+    };
 
-    // Парсим второе число
-    num2 = strtol(text2, &endptr, 10);
-
-    // Вычисляем и выводим результат
-    long sum = num1 + num2;
-    char result[50];
-    snprintf(result, sizeof(result), "Сумма: %ld", sum);
-    uiLabelSetText(resultLabel, result);
+    
+  }
+  printf("%d \n", number);
 }
 
 // Обработчик закрытия окна
-int onClosing(uiWindow *w, void *data)
-{
-    uiQuit();
-    return 1;
+int onClosing(uiWindow *w, void *data) {
+  uiQuit();
+  return 1;
 }
 
-int main()
-{
-    uiInitOptions opts = {0};
-    uiInit(&opts);
+void initField() {
+    for (int i = 0; i < SIZE; i++) {
+        for (int j = 0; j < SIZE; j++) {
+            field[i][j] = i * SIZE + j + 1;
+        }
+    }
+    field[SIZE - 1][SIZE - 1] = 0;
+}
 
-    // Создаем окно
-    uiWindow *win = uiNewWindow("Сумматор целых чисел", 300, 200, 0);
-    uiWindowOnClosing(win, onClosing, NULL);
+int main() {
+  uiInitOptions opts = {0};
+  uiInit(&opts);
 
-    // Создаем элементы
-    entry1 = uiNewEntry();
-    entry2 = uiNewEntry();
-    uiButton *calcBtn = uiNewButton("Сложить");
-    resultLabel = uiNewLabel("Введите два целых числа");
+  // Создаем окно
+  window = uiNewWindow("Пятнашки", 300, 300, 0);
+  uiWindowSetMargined(window, 1);
+  uiWindowOnClosing(window, onClosing, NULL);
 
-    // Устанавливаем начальные значения
-    uiEntrySetText(entry1, "10");
-    uiEntrySetText(entry2, "20");
+  // Компоновка интерфейса
+  uiBox *vbox = uiNewVerticalBox();
+  uiBoxSetPadded(vbox, 1);
+  uiWindowSetChild(window, uiControl(vbox));
 
-    // Компоновка
-    uiBox *vbox = uiNewVerticalBox();
-    uiBoxSetPadded(vbox, 1);
-    uiBoxAppend(vbox, uiControl(entry1), 0);
-    uiBoxAppend(vbox, uiControl(entry2), 0);
-    uiBoxAppend(vbox, uiControl(calcBtn), 0);
-    uiBoxAppend(vbox, uiControl(resultLabel), 0);
-    uiWindowSetChild(win, uiControl(vbox));
+  initField();
 
-    // Подключаем обработчики
-    uiButtonOnClicked(calcBtn, onSuper, NULL);
+  char label[4];
+  for (int i = 0; i < SIZE; i++) {
+    // Создаем строки поля
+    uiBox *hbox = uiNewHorizontalBox();
+    uiBoxSetPadded(hbox, 1);
+    uiBoxAppend(vbox, uiControl(hbox), 1);
 
-    // Запуск
-    uiControlShow(uiControl(win));
-    uiMain();
-    uiUninit();
-    return 0;
+    for (int j = 0; j < SIZE; j++) {
+      // Создаем кнопку
+      buttons[i][j] = uiNewButton("");
+      if (field[i][j] != 0) {
+        snprintf(label, sizeof(label), "%d", field[i][j]);
+        uiButtonSetText(buttons[i][j], label);
+      }
+
+      // Добавляем кнопку в интерфейс
+      uiBoxAppend(hbox, uiControl(buttons[i][j]), 1);
+
+      // Добавляем обработчик нажатия
+      uiButtonOnClicked(buttons[i][j], clickHandler, &field[i][j]);
+    }
+  }
+
+  // Запуск
+  uiControlShow(uiControl(window));
+  uiMain();
+  uiUninit();
+  return 0;
 }
