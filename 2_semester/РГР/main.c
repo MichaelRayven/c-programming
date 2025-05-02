@@ -9,19 +9,36 @@ static uiButton *buttons[SIZE][SIZE];
 static uiWindow *window;
 
 void swapTile(int r1, int c1, int r2, int c2) {
-    int tempValue = field[r1][c1];
-    char *tempLabel = uiButtonText(buttons[r1][c1]);
+    int tempValue = field[c1][r1];
+    char *tempLabel = uiButtonText(buttons[c1][r1]);
 
-    field[r1][c1] = field[r2][c2];
-    field[r2][c2] = tempValue;
+    field[c1][r1] = field[c2][r2];
+    field[c2][r2] = tempValue;
 
-    uiButtonSetText(buttons[r1][c1], uiButtonText(buttons[r2][c2]));
-    uiButtonSetText(buttons[r2][c2], tempLabel);
+    uiButtonSetText(buttons[c1][r1], uiButtonText(buttons[c2][r2]));
+    uiButtonSetText(buttons[c2][r2], tempLabel);
 }
 
 // r2, c2 - координаты свободной клетки
 int isValidMove(int r1, int c1, int r2, int c2) {
     return r1 == r2 || c1 == c2;    
+}
+
+int isSolved() {
+  int count = 1;
+  for (int i = 0; i < SIZE; i++) {
+    for (int j = 0; j < SIZE; j++) {
+      // Проверка что правая нижная клетка - пустая
+      if (i == SIZE - 1 && j == SIZE - 1) {
+        return field[i][j] == 0;
+      }
+      
+      if (field[i][j] != count++) {
+        return 0;
+      }
+    }
+  }
+  return 1;
 }
 
 // Обработчик кнопки
@@ -41,14 +58,22 @@ void clickHandler(uiButton *b, void *data) {
   }
 
   if (isValidMove(col, row, emptyCol, emptyRow)) {
-    int direction[2] = {
-      row - emptyRow < 0 ? 1 : -1,
-      col - emptyCol < 0 ? 1 : -1 
-    };
+    printf("%d \n", number);
 
-    
+    if (col == emptyCol) {
+      int direction = row - emptyRow < 0 ? -1 : 1;
+      for (int i = emptyRow; i != row; i += direction) {
+        swapTile(i, col, i + direction, col);
+      }
+    }
+
+    if (row == emptyRow) {
+      int direction = col - emptyCol < 0 ? -1 : 1;
+      for (int i = emptyCol; i != col; i += direction) {
+        swapTile(row, i, row, i + direction);
+      }
+    }
   }
-  printf("%d \n", number);
 }
 
 // Обработчик закрытия окна
