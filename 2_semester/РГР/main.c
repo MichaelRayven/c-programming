@@ -16,6 +16,7 @@ static uiEntry *movesLabel;
 int emptyCol = SIZE - 1;
 int emptyRow = SIZE - 1;
 int movesCounter = 0;
+int playing = 0;
 
 void swapTile(int r1, int c1, int r2, int c2) {
   int tempValue = field[c1][r1];
@@ -94,9 +95,15 @@ void shuffleBtnHandler(uiButton *b, void *data) {
   resetMovesCounter();
 
   shuffleField();
+  playing = 1;
 }
 
 void clickHandler(uiButton *b, void *data) {
+  if (!playing) {
+    uiMsgBox(window, "Как играть", "Нажимайте на клетки, чтобы \nпередвинуть их в пустое пространство. \n\nНажмите кнопку \"Перемешать\", \nчтобы начать игру.");
+    return;
+  }
+
   int number = *((int *)data), col = 0, row = 0;
   for (int i = 0; i < SIZE; i++) {
     for (int j = 0; j < SIZE; j++) {
@@ -132,12 +139,16 @@ void clickHandler(uiButton *b, void *data) {
     uiControlEnable(uiControl(shuffleBtn));
     uiControlShow(uiControl(shuffleBtn));
 
+    uiControlHide(uiControl(movesLabel));
+
     char label[100];
     snprintf(label, sizeof(label),
              "Вы собрали Пятнашки!\n"
              "Вам потребовалось %d шагов.",
              movesCounter);
     uiMsgBox(window, "Поздравляем!", label);
+
+    playing = 0;
   }
 }
 
@@ -210,3 +221,7 @@ int main() {
   uiUninit();
   return 0;
 }
+
+// TODO:
+// - Saves
+// - Better visuals 
