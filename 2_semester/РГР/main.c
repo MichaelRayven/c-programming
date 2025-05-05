@@ -18,7 +18,7 @@ int emptyRow = SIZE - 1;
 int movesCounter = 0;
 int playing = 0;
 
-void swapTile(int r1, int c1, int r2, int c2) {
+void swapTile(int c1, int r1, int c2, int r2) {
   int tempValue = field[c1][r1];
   char *tempLabel = uiButtonText(buttons[c1][r1]);
 
@@ -52,20 +52,23 @@ void shuffleField() {
   srand(time(NULL));
 
   for (int n = 0; n < SHUFFLE_COUNT; n++) {
+    // Случайное значение от 1 до n - 1,
+    // где n - размер поля
+    int shift = rand() % (SIZE - 1) + 1;
     if (rand() % 2) {
       // Горизонтальное смещение
-      int row = rand() % SIZE;
+      int row = (emptyRow + shift) % SIZE;
       int direction = row - emptyRow < 0 ? -1 : 1;
       for (int i = emptyRow; i != row; i += direction) {
-        swapTile(i, emptyCol, i + direction, emptyCol);
+        swapTile(emptyCol, i, emptyCol, i + direction);
       }
       emptyRow = row;
     } else {
       // Вертикальное смещение
-      int col = rand() % SIZE;
+      int col = (emptyCol + shift) % SIZE;
       int direction = col - emptyCol < 0 ? -1 : 1;
       for (int i = emptyCol; i != col; i += direction) {
-        swapTile(emptyRow, i, emptyRow, i + direction);
+        swapTile(i, emptyRow, i + direction, emptyRow);
       }
       emptyCol = col;
     }
@@ -100,7 +103,10 @@ void shuffleBtnHandler(uiButton *b, void *data) {
 
 void clickHandler(uiButton *b, void *data) {
   if (!playing) {
-    uiMsgBox(window, "Как играть", "Нажимайте на клетки, чтобы \nпередвинуть их в пустое пространство. \n\nНажмите кнопку \"Перемешать\", \nчтобы начать игру.");
+    uiMsgBox(
+        window, "Как играть",
+        "Нажимайте на клетки, чтобы \nпередвинуть их в пустое пространство. "
+        "\n\nНажмите кнопку \"Перемешать\", \nчтобы начать игру.");
     return;
   }
 
@@ -121,7 +127,7 @@ void clickHandler(uiButton *b, void *data) {
     if (col == emptyCol) {
       int direction = row - emptyRow < 0 ? -1 : 1;
       for (int i = emptyRow; i != row; i += direction) {
-        swapTile(i, emptyCol, i + direction, emptyCol);
+        swapTile(emptyCol, i, emptyCol, i + direction);
       }
       emptyRow = row;
     }
@@ -129,7 +135,7 @@ void clickHandler(uiButton *b, void *data) {
     if (row == emptyRow) {
       int direction = col - emptyCol < 0 ? -1 : 1;
       for (int i = emptyCol; i != col; i += direction) {
-        swapTile(emptyRow, i, emptyRow, i + direction);
+        swapTile(i, emptyRow, i + direction, emptyRow);
       }
       emptyCol = col;
     }
@@ -224,4 +230,4 @@ int main() {
 
 // TODO:
 // - Saves
-// - Better visuals 
+// - Better visuals
