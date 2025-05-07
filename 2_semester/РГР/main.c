@@ -5,16 +5,18 @@
 #include "ui/ui.h"
 
 #define SIZE 4
-#define SHUFFLE_COUNT 100
 
 static int field[SIZE][SIZE];
 static uiButton *buttons[SIZE][SIZE];
 static uiButton *shuffleBtn;
 static uiWindow *window;
 static uiEntry *movesLabel;
+static uiBox *difficultyBox;
 
 int emptyCol = SIZE - 1;
 int emptyRow = SIZE - 1;
+int shuffleCount = 100;
+int shuffleIterations = 0;
 int movesCounter = 0;
 int playing = 0;
 
@@ -48,31 +50,41 @@ int isSolved() {
   return 1;
 }
 
+int makeRandomMove(void *data) {
+  // Случайное значение от 1 до n - 1,
+  // где n - размер поля
+  int shift = rand() % (SIZE - 1) + 1;
+  if (rand() % 2) {
+    // Горизонтальное смещение
+    int row = (emptyRow + shift) % SIZE;
+    int direction = row - emptyRow < 0 ? -1 : 1;
+    for (int i = emptyRow; i != row; i += direction) {
+      swapTile(emptyCol, i, emptyCol, i + direction);
+    }
+    emptyRow = row;
+  } else {
+    // Вертикальное смещение
+    int col = (emptyCol + shift) % SIZE;
+    int direction = col - emptyCol < 0 ? -1 : 1;
+    for (int i = emptyCol; i != col; i += direction) {
+      swapTile(i, emptyRow, i + direction, emptyRow);
+    }
+    emptyCol = col;
+  }
+
+  if (shuffleIterations < shuffleCount) {
+    shuffleIterations++;
+    return 1;
+  } else {
+    shuffleIterations = 0;
+    return 0;
+  }
+}
+
 void shuffleField() {
   srand(time(NULL));
 
-  for (int n = 0; n < SHUFFLE_COUNT; n++) {
-    // Случайное значение от 1 до n - 1,
-    // где n - размер поля
-    int shift = rand() % (SIZE - 1) + 1;
-    if (rand() % 2) {
-      // Горизонтальное смещение
-      int row = (emptyRow + shift) % SIZE;
-      int direction = row - emptyRow < 0 ? -1 : 1;
-      for (int i = emptyRow; i != row; i += direction) {
-        swapTile(emptyCol, i, emptyCol, i + direction);
-      }
-      emptyRow = row;
-    } else {
-      // Вертикальное смещение
-      int col = (emptyCol + shift) % SIZE;
-      int direction = col - emptyCol < 0 ? -1 : 1;
-      for (int i = emptyCol; i != col; i += direction) {
-        swapTile(i, emptyRow, i + direction, emptyRow);
-      }
-      emptyCol = col;
-    }
-  }
+  uiTimer(1000 / shuffleCount, makeRandomMove, NULL);
 }
 
 void increaseMovesCounter() {
@@ -90,9 +102,15 @@ void resetMovesCounter() {
 }
 
 // Обработчик кнопки
+void difficultySliderHandler(uiSlider *s, void *data) {
+  shuffleCount = uiSliderValue(s);
+}
+
 void shuffleBtnHandler(uiButton *b, void *data) {
   uiControlDisable(uiControl(shuffleBtn));
   uiControlHide(uiControl(shuffleBtn));
+
+  uiControlHide(uiControl(difficultyBox));
 
   uiControlShow(uiControl(movesLabel));
   resetMovesCounter();
@@ -144,6 +162,7 @@ void clickHandler(uiButton *b, void *data) {
   if (isSolved()) {
     uiControlEnable(uiControl(shuffleBtn));
     uiControlShow(uiControl(shuffleBtn));
+    uiControlShow(uiControl(difficultyBox));
 
     uiControlHide(uiControl(movesLabel));
 
@@ -212,6 +231,14 @@ int main() {
     }
   }
 
+  difficultyBox = uiNewVerticalBox();
+  uiLabel *difficultyLabel = uiNewLabel("Сложность: ");
+  uiBoxAppend(difficultyBox, uiControl(difficultyLabel), 1);
+  uiSlider *difficultySlider = uiNewSlider(1, 100);
+  uiSliderOnChanged(difficultySlider, difficultySliderHandler, NULL);
+  uiBoxAppend(difficultyBox, uiControl(difficultySlider), 1);
+  uiBoxAppend(vbox, uiControl(difficultyBox), 1);
+
   shuffleBtn = uiNewButton("Перемешать");
   uiButtonOnClicked(shuffleBtn, shuffleBtnHandler, NULL);
   uiBoxAppend(vbox, uiControl(shuffleBtn), 1);
@@ -227,7 +254,3 @@ int main() {
   uiUninit();
   return 0;
 }
-
-// TODO:
-// - Saves
-// - Better visuals
